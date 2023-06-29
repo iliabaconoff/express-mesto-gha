@@ -1,6 +1,7 @@
 [![Tests](../../actions/workflows/tests-13-sprint.yml/badge.svg)](../../actions/workflows/tests-13-sprint.yml) [![Tests](../../actions/workflows/tests-14-sprint.yml/badge.svg)](../../actions/workflows/tests-14-sprint.yml)
 # Проект Mesto фронтенд + бэкенд
-
+[Front-End проекта](https://github.com/iliabaconoff/react-mesto-auth)
+[Back-End проекта](https://github.com/iliabaconoff/express-mesto-gha)
 
 ## Директории
 
