@@ -56,7 +56,7 @@ const putCardLike = (req, res) => {
       if (err instanceof CastError) {
         res.status(BAD_REQUEST_CODE).send({ message: BAD_REQUEST_ERROR });
       } else if (err.message === INVAILD_ID) {
-        res.status(NOT_FOUND_CODE).send({ message: NOT_FOUND_CODE });
+        res.status(NOT_FOUND_CODE).send({ message: NOT_FOUND_ERROR });
       } else {
         res.status(INTERNAL_CODE).send({ message: INTERNAL_ERROR });
       }
