@@ -1,10 +1,10 @@
 const rateLimit = require('express-rate-limit');
 
 // Сообщения об ошибках
-const BAD_REQUEST_ERROR = 'Введены некорректные данные.';
-const NOT_FOUND_ERROR = 'Указанный ресурс не найден.';
+const BAD_REQUEST_ERROR = 'Переданы некорректные данные в методы создания карточки, пользователя, обновления аватара пользователя или профиля';
+const NOT_FOUND_ERROR = 'Карточка или пользователь не найден или был запрошен несуществующий роут';
 const INVAILD_ID = 'NotValidId';
-const INTERNAL_ERROR = 'Общая ошибка сервера. Если ошибка повторяется, свяжитесь с администратором: https://github.com/iliabaconoff';
+const INTERNAL_ERROR = 'На сервере произошла ошибка';
 const VALIDATOR_URL_ERROR = 'Введена некорректная ссылка';
 
 // Статус-коды ошибок
