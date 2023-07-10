@@ -30,14 +30,13 @@ const deleteCard = (req, res, next) => {
   Card.findById(req.params.cardId)
     .orFail(new NotFound('ID карточки не существует'))
     .then((foundCard) => {
-      if (!foundCard.owner.equals(req.user._id))
+      if (!foundCard.owner.equals(req.user._id)) {
         return next(
-          new Forbidden('Эта карточка принадлежит другому пользователю.')
+          new Forbidden('Эта карточка принадлежит другому пользователю.'),
         );
+      }
 
-      return Card.deleteOne(foundCard).then(() =>
-        res.send({ message: foundCard })
-      );
+      return Card.deleteOne(foundCard).then(() => res.send({ message: foundCard }));
     })
     .catch((err) => next(err));
 };
