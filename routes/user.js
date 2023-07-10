@@ -6,12 +6,16 @@ const {
   updateUserAvatar,
   getCurrentUser,
 } = require('../controllers/users');
-const { validateUserId } = require('../utils/validationConfig');
+const {
+  validateUserId,
+  validateUserUpdate,
+  validateUpdateAvatar,
+} = require('../utils/validationConfig');
 
 userRouter.get('/', getUserList);
 userRouter.get('/me', getCurrentUser);
 userRouter.get('/:userId', validateUserId, getUserById);
-userRouter.patch('/me', updateUserData);
-userRouter.patch('/me/avatar', updateUserAvatar);
+userRouter.patch('/me', validateUserUpdate, updateUserData);
+userRouter.patch('/me/avatar', validateUpdateAvatar, updateUserAvatar);
 
 module.exports = userRouter;
