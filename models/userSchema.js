@@ -17,8 +17,6 @@ const userSchema = new Schema(
       type: String,
       select: false,
       require: [true, 'Поле "password" должно быть заполнено'],
-      minlength: [8, 'Минимальная длина поля "password" - 8'],
-      maxlength: [16, 'Максимальная длина поля "password" - 16'],
     },
     name: {
       type: String,

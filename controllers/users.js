@@ -25,26 +25,19 @@ const getUserById = (req, res, next) => {
 const getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
     .orFail(new NotFound('Пользователя с такии ID не найдено'))
-    .then((userData) => res.send({ data: userData}))
+    .then((userData) => res.send({ data: userData }))
     .catch((err) => next(err));
-}
+};
 
 const createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
 
-  return bcrypt
-    .hash(password, 10)
-    .then((hash) => {
-      User.create({
-        name,
-        about,
-        avatar,
-        email,
-        password: hash,
-      });
-    })
+  return bcrypt.hash(password, 10)
+    .then((hash) => User.create({
+      name, about, avatar, email, password: hash,
+    }))
     .then(() => {
       res.status(201).send({
         name,
@@ -99,7 +92,7 @@ const login = (req, res, next) => {
 
   return User.findUserByCredentials(email, password)
     .then((user) => {
-      const token = jwt.sign({ _id: user._id }, SECRET, { expires: '7d' });
+      const token = jwt.sign({ _id: user._id }, SECRET, { expiresIn: '7d' });
       res.send({ token });
     })
     .catch((err) => next(err));
