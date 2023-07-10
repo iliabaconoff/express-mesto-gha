@@ -1,97 +1,116 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const { SECRET } = require('../utils/config');
+
+const { ValidationError } = mongoose.Error;
 const User = require('../models/userSchema');
-const {
-  INTERNAL_CODE,
-  BAD_REQUEST_CODE,
-  BAD_REQUEST_ERROR,
-  NOT_FOUND_CODE,
-  NOT_FOUND_ERROR,
-  INTERNAL_ERROR,
-  INVAILD_ID,
-  SUCCESS_CREATE_CODE,
-} = require('../utils/global');
+const BadRequest = require('../utils/responsesWithError/BadRequest');
+const NotFound = require('../utils/responsesWithError/NotFound');
+const Duplicate = require('../utils/responsesWithError/Duplicate');
 
-const { ValidationError, CastError } = mongoose.Error;
-
-const getUserList = (req, res) => {
+const getUserList = (req, res, next) => {
   User.find({})
     .then((users) => res.send({ data: users }))
-    .catch(() => res.status(INTERNAL_CODE).send({ message: INTERNAL_ERROR }));
+    .catch((err) => next(err));
 };
 
-const getUserById = (req, res) => {
+const getUserById = (req, res, next) => {
   User.findById(req.params.userId)
-    .orFail(new Error(INVAILD_ID))
+    .orFail(new NotFound('Пользователь не найден.'))
     .then((userData) => res.send({ data: userData }))
-    .catch((err) => {
-      if (err instanceof CastError) {
-        res.status(BAD_REQUEST_CODE).send({ message: BAD_REQUEST_ERROR });
-      } else if (err.message === INVAILD_ID) {
-        res.status(NOT_FOUND_CODE).send({ message: NOT_FOUND_ERROR });
-      } else {
-        res.status(INTERNAL_CODE).send({ message: INTERNAL_ERROR });
-      }
-    });
+    .catch((err) => next(err));
 };
 
-const createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
+const getCurrentUser = (req, res, next) => {
+  User.findById(req.user._id)
+    .orFail(new NotFound('Пользователя с такии ID не найдено'))
+    .then((userData) => res.send({ data: userData}))
+    .catch((err) => next(err));
+}
 
-  User.create({ name, about, avatar })
-    .then((userData) => res.status(SUCCESS_CREATE_CODE).send({ data: userData }))
+const createUser = (req, res, next) => {
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
+
+  return bcrypt
+    .hash(password, 10)
+    .then((hash) => {
+      User.create({
+        name,
+        about,
+        avatar,
+        email,
+        password: hash,
+      });
+    })
+    .then(() => {
+      res.status(201).send({
+        name,
+        about,
+        avatar,
+        email,
+      });
+    })
     .catch((err) => {
       if (err instanceof ValidationError) {
-        res.status(BAD_REQUEST_CODE).send({ message: err.message });
+        next(new BadRequest(err.message));
+      } else if (err.code === 11000) {
+        next(new Duplicate('Пользователь с таким email уже зарегистрирован.'));
       } else {
-        res.status(INTERNAL_CODE).send({ message: INTERNAL_ERROR });
+        next(err);
       }
     });
 };
 
-const updateUserData = (req, res) => {
+const updateUserData = (req, res, next) => {
   const { name, about } = req.body;
 
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
-    .orFail(new Error(INVAILD_ID))
-    .then((updatedUserData) => {
-      if (updatedUserData) {
-        res.send({ data: updatedUserData });
-      } else {
-        res.status(NOT_FOUND_CODE).send({ message: NOT_FOUND_ERROR });
-      }
-    })
+    .orFail(new NotFound('Пользователь с таким ID не найден.'))
+    .then((updatedUserData) => res.send({ data: updatedUserData }))
     .catch((err) => {
-      if (err instanceof ValidationError || err instanceof CastError) {
-        res.status(BAD_REQUEST_CODE).send({ message: err.message });
-      } else if (err.message === INVAILD_ID) {
-        res.status(NOT_FOUND_CODE).send({ message: NOT_FOUND_ERROR });
+      if (err instanceof ValidationError) {
+        next(new BadRequest(err.message));
       } else {
-        res.status(INTERNAL_CODE).send({ message: INTERNAL_ERROR });
+        next(err);
       }
     });
 };
 
-const updateUserAvatar = (req, res) => {
+const updateUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
 
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
-    .orFail(new Error(INVAILD_ID))
+    .orFail(new NotFound('Некорректный ID пользователя.'))
     .then((newAvatar) => res.send({ data: newAvatar }))
     .catch((err) => {
-      if (err instanceof ValidationError || err instanceof CastError) {
-        res.status(BAD_REQUEST_CODE).send({ message: err.message });
-      } else if (err.message === INVAILD_ID) {
-        res.status(NOT_FOUND_CODE).send({ message: NOT_FOUND_ERROR });
+      if (err instanceof ValidationError) {
+        next(new BadRequest(err.message));
       } else {
-        res.status(INTERNAL_CODE).send({ message: INTERNAL_ERROR });
+        next(err);
       }
     });
+};
+
+const login = (req, res, next) => {
+  const { email, password } = req.body;
+
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, SECRET, { expires: '7d' });
+      res.send({ token });
+    })
+    .catch((err) => next(err));
 };
 
 module.exports = {
   getUserList,
   getUserById,
+  getCurrentUser,
   createUser,
   updateUserData,
   updateUserAvatar,
+  login,
 };

@@ -1,8 +1,7 @@
-const mongoose = require('mongoose');
+const { Schema, model } = require('mongoose');
 const validator = require('validator');
-const { VALIDATOR_URL_ERROR } = require('../utils/global');
 
-const cardSchema = new mongoose.Schema(
+const cardSchema = new Schema(
   {
     name: {
       type: String,
@@ -14,18 +13,18 @@ const cardSchema = new mongoose.Schema(
       type: String,
       validate: {
         validator: (v) => validator.isURL(v),
-        message: VALIDATOR_URL_ERROR,
+        message: 'Некорректный URL',
       },
       required: true,
     },
     owner: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       required: true,
       ref: 'user',
     },
     likes: [
       {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         default: [],
         ref: 'user',
       },
@@ -40,4 +39,4 @@ const cardSchema = new mongoose.Schema(
   },
 );
 
-module.exports = mongoose.model('card', cardSchema);
+module.exports = model('card', cardSchema);
