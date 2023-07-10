@@ -1,87 +1,73 @@
 const mongoose = require('mongoose');
+
+const { ValidationError } = mongoose.Error;
 const Card = require('../models/cardSchema');
-const {
-  INTERNAL_CODE,
-  INTERNAL_ERROR,
-  SUCCESS_CREATE_CODE,
-  BAD_REQUEST_CODE,
-  BAD_REQUEST_ERROR,
-  INVAILD_ID,
-  NOT_FOUND_CODE,
-  NOT_FOUND_ERROR,
-} = require('../utils/global');
+const BadRequest = require('../utils/responsesWithError/BadRequest');
+const NotFound = require('../utils/responsesWithError/NotFound');
+const Forbidden = require('../utils/responsesWithError/Forbidden');
 
-const { ValidationError, CastError } = mongoose.Error;
-
-const getInitialCards = (req, res) => {
+const getAllCards = (req, res, next) => {
   Card.find({})
     .then((cards) => res.send({ data: cards }))
-    .catch(() => res.status(INTERNAL_CODE).send({ message: INTERNAL_ERROR }));
+    .catch((err) => next(err));
 };
 
-const createCard = (req, res) => {
+const createCard = (req, res, next) => {
   const { name, link } = req.body;
 
   Card.create({ name, link, owner: req.user._id })
-    .then((card) => res.status(SUCCESS_CREATE_CODE).send({ data: card }))
+    .then((card) => res.status(201).send({ data: card }))
     .catch((err) => {
       if (err instanceof ValidationError) {
-        res.status(BAD_REQUEST_CODE).send({ message: BAD_REQUEST_ERROR });
+        next(new BadRequest(err.message));
       } else {
-        res.status(INTERNAL_CODE).send({ message: INTERNAL_ERROR });
+        next(err);
       }
     });
 };
 
-const deleteCard = (req, res) => {
-  Card.findByIdAndRemove(req.params.cardId)
-    .orFail(new Error(INVAILD_ID))
-    .then((card) => res.send({ data: card }))
-    .catch((err) => {
-      if (err instanceof CastError) {
-        res.status(BAD_REQUEST_CODE).send({ message: BAD_REQUEST_ERROR });
-      } else if (err.message === INVAILD_ID) {
-        res.status(NOT_FOUND_CODE).send({ message: NOT_FOUND_ERROR });
-      } else {
-        res.status(INTERNAL_CODE).send({ message: INTERNAL_ERROR });
-      }
-    });
+const deleteCard = (req, res, next) => {
+  Card.findById(req.params.cardId)
+    .orFail(new NotFound('ID карточки не существует'))
+    .then((foundCard) => {
+      if (!foundCard.owner.equals(req.user._id))
+        return next(
+          new Forbidden('Эта карточка принадлежит другому пользователю.')
+        );
+
+      return Card.deleteOne(foundCard).then(() =>
+        res.send({ message: foundCard })
+      );
+    })
+    .catch((err) => next(err));
 };
 
-const putCardLike = (req, res) => {
-  Card.findByIdAndUpdate(req.params.cardId, { $addToSet: { likes: req.user._id } }, { new: true })
-    .orFail(new Error(INVAILD_ID))
+const likeCard = (req, res, next) => {
+  Card.findByIdAndUpdate(
+    req.params.cardId,
+    { $addToSet: { likes: req.user._id } },
+    { new: true },
+  )
+    .orFail(new NotFound('ID карточки не существует.'))
     .then((card) => res.send({ data: card }))
-    .catch((err) => {
-      if (err instanceof CastError) {
-        res.status(BAD_REQUEST_CODE).send({ message: BAD_REQUEST_ERROR });
-      } else if (err.message === INVAILD_ID) {
-        res.status(NOT_FOUND_CODE).send({ message: NOT_FOUND_ERROR });
-      } else {
-        res.status(INTERNAL_CODE).send({ message: INTERNAL_ERROR });
-      }
-    });
+    .catch((err) => next(err));
 };
 
-const deleteCardLike = (req, res) => {
-  Card.findByIdAndUpdate(req.params.cardId, { $pull: { likes: req.user._id } }, { new: true })
-    .orFail(new Error(INVAILD_ID))
+const dislikeCard = (req, res, next) => {
+  Card.findByIdAndUpdate(
+    req.params.cardId,
+    { $pull: { likes: req.user._id } },
+    { new: true },
+  )
+    .orFail(new NotFound('ID карточки не существует'))
     .then((card) => res.send({ data: card }))
-    .catch((err) => {
-      if (err instanceof CastError) {
-        res.status(BAD_REQUEST_CODE).send({ message: BAD_REQUEST_ERROR });
-      } else if (err.message === INVAILD_ID) {
-        res.status(NOT_FOUND_CODE).send({ message: NOT_FOUND_ERROR });
-      } else {
-        res.status(INTERNAL_CODE).send({ message: INTERNAL_ERROR });
-      }
-    });
+    .catch((err) => next(err));
 };
 
 module.exports = {
-  getInitialCards,
+  getAllCards,
   createCard,
   deleteCard,
-  putCardLike,
-  deleteCardLike,
+  likeCard,
+  dislikeCard,
 };
