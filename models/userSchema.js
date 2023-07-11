@@ -7,7 +7,6 @@ const userSchema = new Schema(
   {
     email: {
       type: String,
-      require: [true, 'Поле "email" должно быть заполнено'],
       unique: true,
       validate: {
         validator: (v) => validator.isEmail(v),
@@ -16,7 +15,6 @@ const userSchema = new Schema(
     password: {
       type: String,
       select: false,
-      require: true,
     },
     // https://snipboard.io/XnFLms.jpg не дает он пройти тесты без поля required в модели
     name: {
@@ -24,7 +22,6 @@ const userSchema = new Schema(
       default: 'Жак-Ив Кусто',
       minlength: [2, 'Минимальная длина поля "name" - 2'],
       maxlength: [30, 'Максимальная длина поля "name" - 30'],
-      required: true,
     },
     about: {
       type: String,
