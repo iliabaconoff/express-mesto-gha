@@ -24,6 +24,7 @@ const userSchema = new Schema(
       default: 'Жак-Ив Кусто',
       minlength: [2, 'Минимальная длина поля "name" - 2'],
       maxlength: [30, 'Максимальная длина поля "name" - 30'],
+      required: true,
     },
     about: {
       type: String,
