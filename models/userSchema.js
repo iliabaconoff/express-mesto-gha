@@ -16,7 +16,6 @@ const userSchema = new Schema(
       type: String,
       select: false,
     },
-    // https://snipboard.io/XnFLms.jpg не дает он пройти тесты без поля required в модели
     name: {
       type: String,
       default: 'Жак-Ив Кусто',
