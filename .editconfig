@@ -35,4 +35,3 @@ insert_final_newline = true
 [*.js]
 quote_type = single
 max_line_length = 100
-

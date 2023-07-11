@@ -18,16 +18,18 @@ const userSchema = new Schema(
       select: false,
       require: [true, 'Поле "password" должно быть заполнено'],
     },
+    //https://snipboard.io/XnFLms.jpg не дает он пройти тесты без поля required в модели
     name: {
       type: String,
       default: 'Жак-Ив Кусто',
       minlength: [2, 'Минимальная длина поля "name" - 2'],
       maxlength: [30, 'Максимальная длина поля "name" - 30'],
+      required: true,
     },
     about: {
       type: String,
       default: 'Исследователь',
-      required: [true, 'Поле "about" должно быть заполнено'],
+      required: true,
       minlength: [2, 'Минимальная длина поля "about" - 2'],
       maxlength: [30, 'Максимальная длина поля "about" - 30'],
     },
