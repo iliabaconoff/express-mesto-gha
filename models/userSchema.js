@@ -18,7 +18,7 @@ const userSchema = new Schema(
       select: false,
       require: [true, 'Поле "password" должно быть заполнено'],
     },
-    //https://snipboard.io/XnFLms.jpg не дает он пройти тесты без поля required в модели
+    // https://snipboard.io/XnFLms.jpg не дает он пройти тесты без поля required в модели
     name: {
       type: String,
       default: 'Жак-Ив Кусто',
@@ -45,6 +45,7 @@ const userSchema = new Schema(
   },
 );
 
+// eslint-disable-next-line func-names
 userSchema.statics.findUserByCredentials = function (email, password) {
   return this.findOne({ email }).select('+password')
     .then((user) => {
