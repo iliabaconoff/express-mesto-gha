@@ -8,7 +8,7 @@ const userSchema = new Schema(
     email: {
       type: String,
       require: [true, 'Поле "email" должно быть заполнено'],
-      unique: [true, 'Пользователь с таким "email" уже существует'],
+      unique: true,
       validate: {
         validator: (v) => validator.isEmail(v),
       },
@@ -16,7 +16,7 @@ const userSchema = new Schema(
     password: {
       type: String,
       select: false,
-      require: [true, 'Поле "password" должно быть заполнено'],
+      require: true,
     },
     // https://snipboard.io/XnFLms.jpg не дает он пройти тесты без поля required в модели
     name: {
@@ -24,12 +24,10 @@ const userSchema = new Schema(
       default: 'Жак-Ив Кусто',
       minlength: [2, 'Минимальная длина поля "name" - 2'],
       maxlength: [30, 'Максимальная длина поля "name" - 30'],
-      required: true,
     },
     about: {
       type: String,
       default: 'Исследователь',
-      required: true,
       minlength: [2, 'Минимальная длина поля "about" - 2'],
       maxlength: [30, 'Максимальная длина поля "about" - 30'],
     },
@@ -40,7 +38,6 @@ const userSchema = new Schema(
         validator: (v) => validator.isURL(v),
         message: 'Некорректный URL',
       },
-      required: true,
     },
   },
 );
